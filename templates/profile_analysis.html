@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Taste Analysis - Letterboxd Movie Recommender</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode">
+        <span class="toggle-icon"></span>
+    </button>
+
+    <div class="container">
+        <header>
+            <div style="margin-bottom: 20px;">
+                <a href="/" class="back-link">← Back to Home</a>
+            </div>
+            <h1>Profile Taste Analysis</h1>
+            <p class="subtitle">Deep insights into your entire watch history</p>
+        </header>
+
+        <main>
+            <div class="card">
+                <h2>Discover Your Cinematic DNA</h2>
+                <p class="description">
+                    Enter your Letterboxd username and we'll analyze your entire viewing history to uncover
+                    your unique taste profile, favorite genres, rating patterns, and generate personalized
+                    recommendations based on what you actually love.
+                </p>
+
+                <form id="profileForm" method="POST">
+                    <div class="form-group">
+                        <label for="username">Letterboxd Username</label>
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            placeholder="connoreatspants"
+                            required
+                            autocomplete="off"
+                        >
+                        <small>Just your username - we'll handle the rest!</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="analysis_depth">Analysis Depth</label>
+                        <select id="analysis_depth" name="analysis_depth">
+                            <option value="rated_only" selected>Rated Films Only (Recommended)</option>
+                            <option value="all_films">All Watched Films</option>
+                        </select>
+                        <small>Rated films give us better insights into what you actually enjoy</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="user_preferences">What are you looking for? (optional)</label>
+                        <textarea
+                            id="user_preferences"
+                            name="user_preferences"
+                            rows="3"
+                            placeholder="Looking for cozy comfort movies for winter nights, or mind-bending sci-fi thrillers..."
+                        ></textarea>
+                        <small>We'll tailor recommendations to your current mood or preferences</small>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        Analyze My Taste
+                    </button>
+
+                    <!-- Enhanced Progress Tracker -->
+                    <div id="progressContainer" class="progress-container" style="display: none;">
+                        <h3 class="progress-title">🎭 Analyzing Your Profile</h3>
+
+                        <div class="progress-steps-live">
+                            <div class="progress-step-live" data-step="1">
+                                <div class="step-indicator">
+                                    <div class="step-icon-live">1</div>
+                                    <div class="step-content-live">
+                                        <div class="step-label">Scraping Your Profile</div>
+                                        <div class="step-detail" id="step1-detail">Waiting...</div>
+                                    </div>
+                                </div>
+                                <div class="step-progress-bar">
+                                    <div class="step-progress-fill" id="step1-progress"></div>
+                                </div>
+                            </div>
+
+                            <div class="progress-step-live" data-step="2">
+                                <div class="step-indicator">
+                                    <div class="step-icon-live">2</div>
+                                    <div class="step-content-live">
+                                        <div class="step-label">Enriching with TMDB</div>
+                                        <div class="step-detail" id="step2-detail">Waiting...</div>
+                                    </div>
+                                </div>
+                                <div class="step-progress-bar">
+                                    <div class="step-progress-fill" id="step2-progress"></div>
+                                </div>
+                            </div>
+
+                            <div class="progress-step-live" data-step="3">
+                                <div class="step-indicator">
+                                    <div class="step-icon-live">3</div>
+                                    <div class="step-content-live">
+                                        <div class="step-label">Analyzing Taste Patterns</div>
+                                        <div class="step-detail" id="step3-detail">Waiting...</div>
+                                    </div>
+                                </div>
+                                <div class="step-progress-bar">
+                                    <div class="step-progress-fill" id="step3-progress"></div>
+                                </div>
+                            </div>
+
+                            <div class="progress-step-live" data-step="4">
+                                <div class="step-indicator">
+                                    <div class="step-icon-live">4</div>
+                                    <div class="step-content-live">
+                                        <div class="step-label">Generating Recommendations</div>
+                                        <div class="step-detail" id="step4-detail">Waiting...</div>
+                                    </div>
+                                </div>
+                                <div class="step-progress-bar">
+                                    <div class="step-progress-fill" id="step4-progress"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="progress-message" id="progressMessage">
+                            <div class="spinner-small"></div>
+                            <span id="currentMessage">Initializing...</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="info-section">
+                <h3>What You'll Discover</h3>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">📊</div>
+                        <div class="step-content">
+                            <h4>Taste Statistics</h4>
+                            <p>Total films watched, average ratings, genre preferences, decade trends</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">🎬</div>
+                        <div class="step-content">
+                            <h4>Favorite Creators</h4>
+                            <p>Your most-watched directors, actors, and their influence on your taste</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">🧠</div>
+                        <div class="step-content">
+                            <h4>Hidden Patterns</h4>
+                            <p>Discover surprising insights about your viewing habits and preferences</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">✨</div>
+                        <div class="step-content">
+                            <h4>Smart Recommendations</h4>
+                            <p>10 personalized picks based on your entire watching history</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section" style="background: var(--card-bg); border: 2px solid var(--border-color);">
+                <h3 style="color: var(--text-primary);">Privacy & Data</h3>
+                <p style="color: var(--text-secondary); text-align: center; max-width: 600px; margin: 0 auto;">
+                    We only access <strong>public</strong> data from your Letterboxd profile.
+                    Nothing is stored permanently - analysis happens in real-time. Your data is never shared.
+                </p>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by <a href="https://www.themoviedb.org" target="_blank">TMDB</a> and <a href="https://anthropic.com" target="_blank">Claude AI</a></p>
+        </footer>
+    </div>
+
+    <script src="/static/profile_script.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+</html>

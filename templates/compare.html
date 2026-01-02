@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare Letterboxd Profiles</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <button class="dark-mode-toggle" id="darkModeToggle">
+            <span class="toggle-icon"></span>
+        </button>
+
+        <header>
+            <div style="margin-bottom: 20px;">
+                <a href="/" class="back-link">← Back to Home</a>
+            </div>
+            <h1>Compare Letterboxd Profiles</h1>
+            <p class="subtitle">Discover taste compatibility, shared favorites, and personalized recommendations</p>
+        </header>
+
+        <div class="card input-card">
+            <form id="compareForm" method="POST">
+                <div class="form-group">
+                    <label for="usernames">Letterboxd Usernames</label>
+                    <input
+                        type="text"
+                        id="usernames"
+                        name="usernames"
+                        placeholder="e.g., connoreatspants, username2, username3"
+                        required
+                    />
+                    <p class="help-text">Enter 2-5 usernames separated by commas</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Comparison Type</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="comparison_type" value="two_user" checked>
+                            <span>Two User Comparison</span>
+                            <p class="radio-description">Deep dive into compatibility and recommendations (2 users only)</p>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="comparison_type" value="group">
+                            <span>Group Consensus</span>
+                            <p class="radio-description">Find safe bets and compromises (2-5 users)</p>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <span>Compare Profiles</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Progress Display -->
+        <div id="progressContainer" class="progress-container" style="display: none;">
+            <div class="progress-card">
+                <h2>Analyzing Profiles...</h2>
+                <div class="progress-steps" id="progressSteps"></div>
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <p class="progress-message" id="progressMessage">Initializing...</p>
+            </div>
+        </div>
+
+        <!-- Error Display -->
+        <div id="errorContainer" class="error-container" style="display: none;">
+            <div class="error-card">
+                <h2>Error</h2>
+                <p id="errorMessage"></p>
+                <button onclick="location.reload()" class="retry-btn">Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+    <script>
+        const form = document.getElementById('compareForm');
+        const progressContainer = document.getElementById('progressContainer');
+        const errorContainer = document.getElementById('errorContainer');
+        const progressSteps = document.getElementById('progressSteps');
+        const progressBar = document.getElementById('progressBar');
+        const progressMessage = document.getElementById('progressMessage');
+        const errorMessage = document.getElementById('errorMessage');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const usernames = formData.get('usernames').split(',').map(u => u.trim()).filter(u => u);
+            const comparisonType = formData.get('comparison_type');
+
+            // Validation
+            if (usernames.length < 2) {
+                alert('Please enter at least 2 usernames');
+                return;
+            }
+
+            if (usernames.length > 5) {
+                alert('Maximum 5 users can be compared');
+                return;
+            }
+
+            if (comparisonType === 'two_user' && usernames.length !== 2) {
+                alert('Two User Comparison requires exactly 2 usernames');
+                return;
+            }
+
+            // Hide form, show progress
+            form.style.display = 'none';
+            progressContainer.style.display = 'block';
+            errorContainer.style.display = 'none';
+
+            // Create event source for streaming
+            const eventSource = new EventSource('/compare-profiles-stream?' + new URLSearchParams(formData));
+
+            eventSource.addEventListener('progress', (e) => {
+                const data = JSON.parse(e.data);
+                progressMessage.textContent = data.message;
+
+                // Update progress bar
+                if (data.step === 1 || data.step === 2) {
+                    const percent = ((data.current - 1 + (data.step === 2 ? 0.5 : 0)) / data.total) * 100;
+                    progressBar.style.width = `${Math.min(percent, 90)}%`;
+                } else if (data.step === 3) {
+                    progressBar.style.width = '95%';
+                }
+            });
+
+            eventSource.addEventListener('complete', (e) => {
+                const data = JSON.parse(e.data);
+                eventSource.close();
+
+                // Store results and redirect
+                sessionStorage.setItem('comparisonResults', JSON.stringify(data));
+                window.location.href = '/display-comparison-results';
+            });
+
+            eventSource.addEventListener('error', (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    errorMessage.textContent = data.message;
+                } catch {
+                    errorMessage.textContent = 'An error occurred while comparing profiles';
+                }
+
+                eventSource.close();
+                progressContainer.style.display = 'none';
+                errorContainer.style.display = 'block';
+            });
+
+            eventSource.onerror = () => {
+                eventSource.close();
+                errorMessage.textContent = 'Connection lost. Please try again.';
+                progressContainer.style.display = 'none';
+                errorContainer.style.display = 'block';
+            };
+        });
+    </script>
+</body>
+</html>

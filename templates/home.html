@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Letterboxd Tools - AI-Powered Film Analysis</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <button class="dark-mode-toggle" id="darkModeToggle">
+            <span class="toggle-icon"></span>
+        </button>
+
+        <div class="hero-section">
+            <h1 class="hero-title">Letterboxd Tools</h1>
+            <p class="hero-subtitle">AI-Powered Film Analysis & Recommendations</p>
+            <p class="hero-description">
+                Discover personalized movie recommendations, analyze your viewing patterns,
+                and compare your taste with friends using advanced AI technology.
+            </p>
+        </div>
+
+        <div class="features-grid">
+            <!-- Feature 1: List Recommendations -->
+            <div class="feature-card">
+                <div class="feature-icon">🎬</div>
+                <h2 class="feature-title">List Recommendations</h2>
+                <p class="feature-description">
+                    Get 10 personalized movie recommendations based on any public Letterboxd list.
+                    Powered by TMDB data and Claude AI.
+                </p>
+                <div class="feature-highlights">
+                    <span class="highlight-badge">AI-Powered</span>
+                    <span class="highlight-badge">Instant Results</span>
+                </div>
+                <a href="/list-recommendations" class="feature-btn">
+                    Get Recommendations →
+                </a>
+            </div>
+
+            <!-- Feature 2: Profile Analysis -->
+            <div class="feature-card featured">
+                <div class="feature-badge">Popular</div>
+                <div class="feature-icon">🎭</div>
+                <h2 class="feature-title">Profile Analysis</h2>
+                <p class="feature-description">
+                    Deep dive into your complete Letterboxd viewing history. Discover your cinematic profile,
+                    hidden gems, and personalized insights.
+                </p>
+                <div class="feature-highlights">
+                    <span class="highlight-badge">AI Profile</span>
+                    <span class="highlight-badge">Hidden Gems</span>
+                    <span class="highlight-badge">Stats</span>
+                </div>
+                <a href="/profile-analysis" class="feature-btn primary">
+                    Analyze Profile →
+                </a>
+            </div>
+
+            <!-- Feature 3: Profile Comparison -->
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h2 class="feature-title">Profile Comparison</h2>
+                <p class="feature-description">
+                    Compare your taste with friends (2-5 users). Find compatibility scores,
+                    shared favorites, and perfect movie night picks.
+                </p>
+                <div class="feature-highlights">
+                    <span class="highlight-badge">Compatibility</span>
+                    <span class="highlight-badge">Group Mode</span>
+                </div>
+                <a href="/compare" class="feature-btn">
+                    Compare Profiles →
+                </a>
+            </div>
+        </div>
+
+        <!-- Additional Info Section -->
+        <div class="info-section">
+            <div class="info-card">
+                <h3>📊 Profile Analysis Features</h3>
+                <ul>
+                    <li>AI-Generated Cinematic Profile with personalized title</li>
+                    <li>Total Watch Time with fun comparisons</li>
+                    <li>Hidden Gems you loved that deserve more attention</li>
+                    <li>Public Disagreement analysis</li>
+                    <li>Content Rating breakdown (G, PG, R, etc.)</li>
+                    <li>Genre, Director, and Actor preferences</li>
+                    <li>Top 15 favorite actors with photos</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3>🤝 Comparison Features</h3>
+                <ul>
+                    <li><strong>Two-User Mode:</strong> Deep compatibility analysis</li>
+                    <li>Taste compatibility score (0-100%)</li>
+                    <li>Shared favorites both users love</li>
+                    <li>Biggest disagreements</li>
+                    <li>Cross-recommendations for each user</li>
+                    <li><strong>Group Mode:</strong> Find consensus for 2-5 users</li>
+                    <li>Safe bets for movie night</li>
+                    <li>Group recommendations everyone will enjoy</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3>💡 How It Works</h3>
+                <ul>
+                    <li>Scrapes public Letterboxd data (lists or profiles)</li>
+                    <li>Enriches with TMDB metadata (genres, cast, ratings)</li>
+                    <li>Analyzes patterns using advanced algorithms</li>
+                    <li>Generates insights with Claude AI (Sonnet 4.5)</li>
+                    <li>All processing happens in real-time</li>
+                    <li>No account required - just enter a username or list URL</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer class="home-footer">
+            <p>Built with ❤️ using FastAPI, TMDB API, and Claude AI</p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Recommendations - Letterboxd Movie Recommender</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode">
+        <span class="toggle-icon">🌙</span>
+    </button>
+
+    <div class="container">
+        <header>
+            <h1>🎬 Your Movie Recommendations</h1>
+            <a href="/" class="btn-secondary">Try Another List</a>
+        </header>
+
+        <main>
+            <div class="stats-card">
+                <h3>Analysis Summary</h3>
+                <div class="stats-grid">
+                    <div class="stat">
+                        <span class="stat-value">{{ stats.scraped }}</span>
+                        <span class="stat-label">Movies Scraped</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">{{ stats.enriched }}</span>
+                        <span class="stat-label">Matched in TMDB</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">{{ stats.match_rate }}%</span>
+                        <span class="stat-label">Match Rate</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">{{ stats.candidates }}</span>
+                        <span class="stat-label">Candidates Analyzed</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">{{ stats.final_count }}</span>
+                        <span class="stat-label">Recommendations</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recommendations-grid">
+                {% for movie in recommendations %}
+                <div class="movie-card">
+                    <div class="movie-poster">
+                        {% if movie.poster_url %}
+                            <img src="{{ movie.poster_url }}" alt="{{ movie.title }} poster">
+                        {% else %}
+                            <div class="no-poster">
+                                <span>No Poster Available</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="movie-info">
+                        <h3 class="movie-title">{{ movie.title }}</h3>
+                        <p class="movie-year">{{ movie.year }}</p>
+
+                        <div class="movie-meta">
+                            <span class="rating">⭐ {{ "%.1f"|format(movie.rating) }}/10</span>
+                            <span class="runtime">
+                                {% if movie.runtime %}
+                                    {{ movie.runtime }} min
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="movie-genres">
+                            {% for genre in movie.genres[:3] %}
+                                <span class="genre-tag">{{ genre }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="movie-crew">
+                            <p><strong>Director:</strong> {{ movie.directors|join(', ') if movie.directors else 'N/A' }}</p>
+                            <p><strong>Cast:</strong> {{ movie.cast[:3]|join(', ') if movie.cast else 'N/A' }}</p>
+                        </div>
+
+                        <p class="movie-overview">{{ movie.overview[:150] }}{% if movie.overview|length > 150 %}...{% endif %}</p>
+
+                        {% if movie.recommendation_reason %}
+                        <div class="recommendation-reason">
+                            <p class="reason-label">💡 Why this recommendation?</p>
+                            <p class="reason-text">{{ movie.recommendation_reason }}</p>
+                        </div>
+                        {% endif %}
+
+                        <div class="movie-links">
+                            <a href="https://www.themoviedb.org/movie/{{ movie.tmdb_id }}" target="_blank" class="btn-link">
+                                View on TMDB
+                            </a>
+                            <a href="https://letterboxd.com/tmdb/{{ movie.tmdb_id }}" target="_blank" class="btn-link">
+                                View on Letterboxd
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="action-section">
+                <a href="/" class="btn-primary">Get More Recommendations</a>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by <a href="https://www.themoviedb.org" target="_blank">TMDB</a> and <a href="https://anthropic.com" target="_blank">Claude AI</a></p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

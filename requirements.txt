@@ -1,0 +1,28 @@
+# Web Framework
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6  # Required for form data handling
+
+# LLM Integration
+anthropic>=0.7.0
+
+# HTTP & Web Scraping
+requests>=2.31.0
+beautifulsoup4>=4.12.2
+lxml>=4.9.3
+
+# Environment Management
+python-dotenv>=1.0.0
+
+# Templating
+jinja2>=3.1.2
+
+# Data Validation (use newer version with pre-built wheels)
+pydantic>=2.10.0
+
+# Fuzzy String Matching
+rapidfuzz>=3.0.0  # Modern, faster alternative to fuzzywuzzy
+
+# Optional but recommended
+httpx>=0.25.1
+tenacity>=8.2.3

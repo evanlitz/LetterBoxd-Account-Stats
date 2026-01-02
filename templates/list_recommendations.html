@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Letterboxd Movie Recommender</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode">
+        <span class="toggle-icon">🌙</span>
+    </button>
+
+    <div class="container">
+        <header>
+            <div style="margin-bottom: 20px;">
+                <a href="/" class="back-link">← Back to Home</a>
+            </div>
+            <h1>List Recommendations</h1>
+            <p class="subtitle">Get AI-powered recommendations from any Letterboxd list</p>
+        </header>
+
+        <main>
+            <div class="card">
+                <h2>Get Personalized Recommendations</h2>
+                <p class="description">
+                    Enter a public Letterboxd list URL and get 10 personalized movie recommendations
+                    powered by TMDB data and Claude AI.
+                </p>
+
+                <form id="recommendForm" action="/recommend" method="POST">
+                    <div class="form-group">
+                        <label for="letterboxd_url">Letterboxd List URL</label>
+                        <input
+                            type="text"
+                            id="letterboxd_url"
+                            name="letterboxd_url"
+                            placeholder="https://letterboxd.com/username/list/listname/"
+                            required
+                        >
+                        <small>Example: https://letterboxd.com/dave/list/official-top-250-narrative-feature-films/</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="user_preferences">What are you looking for? (optional)</label>
+                        <textarea
+                            id="user_preferences"
+                            name="user_preferences"
+                            rows="4"
+                            placeholder="Describe what you're in the mood for...&#10;&#10;Examples:&#10;• Looking for cozy comfort movies for a rainy evening&#10;• Want mind-bending sci-fi thrillers, preferably dark and atmospheric&#10;• Something light and funny for date night, nothing too heavy&#10;• Hidden gems from the 1970s, prefer slow-burn character studies&#10;• Action-packed but intelligent, like early Guy Ritchie films"
+                        ></textarea>
+                        <small>Tell us about your mood, preferred genres, viewing context, themes, or any other preferences. The AI will tailor recommendations to match!</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="max_candidates">Candidate Pool Size (optional)</label>
+                        <select id="max_candidates" name="max_candidates">
+                            <option value="30">30 - Faster</option>
+                            <option value="50" selected>50 - Balanced (recommended)</option>
+                            <option value="100">100 - More thorough</option>
+                        </select>
+                        <small>Larger pools = more diverse recommendations but slower</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="min_rating">Minimum Rating Filter (optional)</label>
+                        <select id="min_rating" name="min_rating">
+                            <option value="0" selected>NONE - Include all movies</option>
+                            <option value="6.0">6.0+ - Decent and above</option>
+                            <option value="6.5">6.5+ - Good and above</option>
+                            <option value="7.0">7.0+ - Very good and above</option>
+                            <option value="7.5">7.5+ - Great and above</option>
+                            <option value="8.0">8.0+ - Excellent and above</option>
+                            <option value="8.5">8.5+ - Outstanding and above</option>
+                            <option value="9.0">9.0+ - Masterpieces only</option>
+                        </select>
+                        <small>Filters TMDB database before building candidates. 6.0+ adds 5% quality boost to scoring.</small>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        Get Recommendations
+                    </button>
+
+                    <!-- Enhanced Progress Tracker -->
+                    <div id="progressContainer" class="progress-container" style="display: none;">
+                        <h3 class="progress-title">🎬 Processing Your List</h3>
+
+                        <div class="progress-steps-live">
+                            <div class="progress-step-live" data-step="1">
+                                <div class="step-indicator">
+                                    <div class="step-icon-live">1</div>
+                                    <div class="step-content-live">
+                                        <div class="step-label">Scraping Letterboxd</div>
+                                        <div class="step-detail" id="step1-detail">Waiting...</div>
+                                    </div>
+                                </div>
+                                <div class="step-progress-bar">
+                                    <div class="step-progress-fill" id="step1-progress"></div>
+                                </div>
+                            </div>
+
+                            <div class="progress-step-live" data-step="2">
+                                <div class="step-indicator">
+                                    <div class="step-icon-live">2</div>
+                                    <div class="step-content-live">
+                                        <div class="step-label">Matching with TMDB</div>
+                                        <div class="step-detail" id="step2-detail">Waiting...</div>
+                                    </div>
+                                </div>
+                                <div class="step-progress-bar">
+                                    <div class="step-progress-fill" id="step2-progress"></div>
+                                </div>
+                            </div>
+
+                            <div class="progress-step-live" data-step="3">
+                                <div class="step-indicator">
+                                    <div class="step-icon-live">3</div>
+                                    <div class="step-content-live">
+                                        <div class="step-label">Building Candidates</div>
+                                        <div class="step-detail" id="step3-detail">Waiting...</div>
+                                    </div>
+                                </div>
+                                <div class="step-progress-bar">
+                                    <div class="step-progress-fill" id="step3-progress"></div>
+                                </div>
+                            </div>
+
+                            <div class="progress-step-live" data-step="4">
+                                <div class="step-indicator">
+                                    <div class="step-icon-live">4</div>
+                                    <div class="step-content-live">
+                                        <div class="step-label">AI Analysis</div>
+                                        <div class="step-detail" id="step4-detail">Waiting...</div>
+                                    </div>
+                                </div>
+                                <div class="step-progress-bar">
+                                    <div class="step-progress-fill" id="step4-progress"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="progress-message" id="progressMessage">
+                            <div class="spinner-small"></div>
+                            <span id="currentMessage">Initializing...</span>
+                        </div>
+                    </div>
+
+                    <!-- Legacy loading (fallback) -->
+                    <div id="loadingMessage" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Analyzing your taste... This may take 30-60 seconds</p>
+                        <small>Scraping list → Enriching with TMDB → Building candidates → AI analysis</small>
+                    </div>
+                </form>
+            </div>
+
+            <div class="info-section">
+                <h3>How It Works</h3>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Scrape Your List</h4>
+                            <p>We extract all movies from your public Letterboxd list</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Enrich with TMDB</h4>
+                            <p>Fetch detailed metadata: genres, directors, cast, plot, keywords</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Build Candidate Pool</h4>
+                            <p>Find 50-100 similar movies from TMDB's database</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4>AI Analysis</h4>
+                            <p>Claude AI analyzes metadata and selects top 10 matches</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by <a href="https://www.themoviedb.org" target="_blank">TMDB</a> and <a href="https://anthropic.com" target="_blank">Claude AI</a></p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

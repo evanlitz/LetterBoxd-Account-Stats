@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Letterboxd Movie Recommender</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode">
+        <span class="toggle-icon">🌙</span>
+    </button>
+
+    <div class="container">
+        <header>
+            <h1>🎬 Letterboxd Movie Recommender</h1>
+        </header>
+
+        <main>
+            <div class="error-card">
+                <div class="error-icon">⚠️</div>
+                <h2>Something Went Wrong</h2>
+                <p class="error-message">{{ error_message }}</p>
+
+                <div class="error-details">
+                    <h3>Progress:</h3>
+                    <div class="progress-steps">
+                        <div class="progress-step {% if step_completed >= 1 %}completed{% endif %}">
+                            <span class="step-icon">{% if step_completed >= 1 %}✓{% else %}1{% endif %}</span>
+                            <span>Scraping Letterboxd</span>
+                            {% if stats.scraped > 0 %}
+                                <small>({{ stats.scraped }} movies found)</small>
+                            {% endif %}
+                        </div>
+                        <div class="progress-step {% if step_completed >= 2 %}completed{% endif %}">
+                            <span class="step-icon">{% if step_completed >= 2 %}✓{% else %}2{% endif %}</span>
+                            <span>Enriching with TMDB</span>
+                            {% if stats.enriched > 0 %}
+                                <small>({{ stats.enriched }} movies matched)</small>
+                            {% endif %}
+                        </div>
+                        <div class="progress-step {% if step_completed >= 3 %}completed{% endif %}">
+                            <span class="step-icon">{% if step_completed >= 3 %}✓{% else %}3{% endif %}</span>
+                            <span>Building Candidates</span>
+                            {% if stats.candidates > 0 %}
+                                <small>({{ stats.candidates }} candidates found)</small>
+                            {% endif %}
+                        </div>
+                        <div class="progress-step {% if step_completed >= 4 %}completed{% endif %}">
+                            <span class="step-icon">{% if step_completed >= 4 %}✓{% else %}4{% endif %}</span>
+                            <span>AI Analysis</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="error-help">
+                    <h3>Common Issues:</h3>
+                    <ul>
+                        <li><strong>Invalid URL:</strong> Make sure you're using a public Letterboxd list URL</li>
+                        <li><strong>Private list:</strong> The list must be public, not private</li>
+                        <li><strong>Not enough movies:</strong> Need at least 5 movies that match in TMDB</li>
+                        <li><strong>API errors:</strong> Check that your API keys are set up correctly</li>
+                    </ul>
+                </div>
+
+                <div class="action-section">
+                    <a href="/" class="btn-primary">Try Again</a>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by <a href="https://www.themoviedb.org" target="_blank">TMDB</a> and <a href="https://anthropic.com" target="_blank">Claude AI</a></p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

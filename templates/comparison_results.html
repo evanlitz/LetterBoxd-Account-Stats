@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Comparison Results</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <button class="dark-mode-toggle" id="darkModeToggle">
+            <span class="toggle-icon"></span>
+        </button>
+
+        <div id="resultsContainer"></div>
+    </div>
+
+    <script src="/static/script.js"></script>
+    <script>
+        // Get results from session storage
+        const results = JSON.parse(sessionStorage.getItem('comparisonResults'));
+
+        if (!results) {
+            window.location.href = '/compare';
+        }
+
+        const container = document.getElementById('resultsContainer');
+        const resultType = results.result_type;
+        const comparison = results.comparison;
+
+        if (resultType === 'two_user') {
+            // Two-user comparison display
+            container.innerHTML = `
+                <header>
+                    <h1>${comparison.user1} vs. ${comparison.user2}</h1>
+                    <p class="subtitle">Profile Comparison</p>
+                </header>
+
+                <!-- Compatibility Score -->
+                <div class="card compatibility-card">
+                    <h2>Taste Compatibility</h2>
+                    <div class="compatibility-hero">
+                        <div class="compatibility-score ${getCompatibilityClass(comparison.compatibility_score)}">
+                            ${comparison.compatibility_score}%
+                        </div>
+                        <div class="compatibility-label">${getCompatibilityLabel(comparison.compatibility_score)}</div>
+                    </div>
+                    <div class="compatibility-stats">
+                        <div class="compat-stat">
+                            <div class="compat-stat-value">${comparison.shared_films_count}</div>
+                            <div class="compat-stat-label">Shared Films</div>
+                        </div>
+                        <div class="compat-stat">
+                            <div class="compat-stat-value">${comparison.compatibility_details.rated_together}</div>
+                            <div class="compat-stat-label">Rated Together</div>
+                        </div>
+                        <div class="compat-stat">
+                            <div class="compat-stat-value">${comparison.compatibility_details.average_difference}</div>
+                            <div class="compat-stat-label">Avg Difference</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shared Favorites -->
+                ${comparison.shared_favorites.length > 0 ? `
+                <div class="card">
+                    <h2>You Both Love</h2>
+                    <p class="description">Films you both rated highly</p>
+                    <div class="comparison-movies-grid">
+                        ${comparison.shared_favorites.map(film => `
+                            <div class="comparison-movie-card">
+                                ${film.poster_path ? `
+                                    <div class="comparison-poster">
+                                        <img src="https://image.tmdb.org/t/p/w200${film.poster_path}" alt="${film.title}" loading="lazy">
+                                    </div>
+                                ` : `
+                                    <div class="comparison-poster comparison-no-poster">
+                                        <span>${film.title[0]}</span>
+                                    </div>
+                                `}
+                                <div class="comparison-movie-info">
+                                    <div class="comparison-movie-title">${film.title}</div>
+                                    <div class="comparison-movie-year">${film.year}</div>
+                                    <div class="comparison-ratings">
+                                        <span class="user1-rating">${comparison.user1}: ${film.user1_rating}★</span>
+                                        <span class="user2-rating">${comparison.user2}: ${film.user2_rating}★</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- Shared Dislikes -->
+                ${comparison.shared_dislikes.length > 0 ? `
+                <div class="card">
+                    <h2>You Both Dislike</h2>
+                    <p class="description">Films you both rated poorly</p>
+                    <div class="comparison-movies-grid">
+                        ${comparison.shared_dislikes.map(film => `
+                            <div class="comparison-movie-card">
+                                ${film.poster_path ? `
+                                    <div class="comparison-poster">
+                                        <img src="https://image.tmdb.org/t/p/w200${film.poster_path}" alt="${film.title}" loading="lazy">
+                                    </div>
+                                ` : `
+                                    <div class="comparison-poster comparison-no-poster">
+                                        <span>${film.title[0]}</span>
+                                    </div>
+                                `}
+                                <div class="comparison-movie-info">
+                                    <div class="comparison-movie-title">${film.title}</div>
+                                    <div class="comparison-movie-year">${film.year}</div>
+                                    <div class="comparison-ratings">
+                                        <span class="user1-rating">${comparison.user1}: ${film.user1_rating}★</span>
+                                        <span class="user2-rating">${comparison.user2}: ${film.user2_rating}★</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- Disagreements -->
+                ${comparison.disagreements.length > 0 ? `
+                <div class="card">
+                    <h2>You Disagree On</h2>
+                    <p class="description">Films with the biggest rating differences</p>
+                    <div class="comparison-movies-grid">
+                        ${comparison.disagreements.map(film => `
+                            <div class="comparison-movie-card">
+                                ${film.poster_path ? `
+                                    <div class="comparison-poster">
+                                        <img src="https://image.tmdb.org/t/p/w200${film.poster_path}" alt="${film.title}" loading="lazy">
+                                    </div>
+                                ` : `
+                                    <div class="comparison-poster comparison-no-poster">
+                                        <span>${film.title[0]}</span>
+                                    </div>
+                                `}
+                                <div class="comparison-movie-info">
+                                    <div class="comparison-movie-title">${film.title}</div>
+                                    <div class="comparison-movie-year">${film.year}</div>
+                                    <div class="comparison-ratings">
+                                        <span class="user1-rating">${comparison.user1}: ${film.user1_rating}★</span>
+                                        <span class="user2-rating">${comparison.user2}: ${film.user2_rating}★</span>
+                                    </div>
+                                    <div class="disagreement-diff">Difference: ${film.difference} points</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- Recommendations for User 1 -->
+                ${comparison.recommendations_for_user1.length > 0 ? `
+                <div class="card">
+                    <h2>Recommendations for ${comparison.user1}</h2>
+                    <p class="description">Films ${comparison.user2} loved that you haven't seen</p>
+                    <div class="comparison-movies-grid">
+                        ${comparison.recommendations_for_user1.map(film => `
+                            <div class="comparison-movie-card">
+                                ${film.poster_path ? `
+                                    <div class="comparison-poster">
+                                        <img src="https://image.tmdb.org/t/p/w200${film.poster_path}" alt="${film.title}" loading="lazy">
+                                    </div>
+                                ` : `
+                                    <div class="comparison-poster comparison-no-poster">
+                                        <span>${film.title[0]}</span>
+                                    </div>
+                                `}
+                                <div class="comparison-movie-info">
+                                    <div class="comparison-movie-title">${film.title}</div>
+                                    <div class="comparison-movie-year">${film.year}</div>
+                                    <div class="comparison-rating-single">${comparison.user2} rated: ${film.rating}★</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- Recommendations for User 2 -->
+                ${comparison.recommendations_for_user2.length > 0 ? `
+                <div class="card">
+                    <h2>Recommendations for ${comparison.user2}</h2>
+                    <p class="description">Films ${comparison.user1} loved that you haven't seen</p>
+                    <div class="comparison-movies-grid">
+                        ${comparison.recommendations_for_user2.map(film => `
+                            <div class="comparison-movie-card">
+                                ${film.poster_path ? `
+                                    <div class="comparison-poster">
+                                        <img src="https://image.tmdb.org/t/p/w200${film.poster_path}" alt="${film.title}" loading="lazy">
+                                    </div>
+                                ` : `
+                                    <div class="comparison-poster comparison-no-poster">
+                                        <span>${film.title[0]}</span>
+                                    </div>
+                                `}
+                                <div class="comparison-movie-info">
+                                    <div class="comparison-movie-title">${film.title}</div>
+                                    <div class="comparison-movie-year">${film.year}</div>
+                                    <div class="comparison-rating-single">${comparison.user1} rated: ${film.rating}★</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- Fresh Recommendations -->
+                ${comparison.fresh_recommendations && comparison.fresh_recommendations.length > 0 ? `
+                <div class="card fresh-recs-card">
+                    <h2>Fresh Recommendations for Both of You</h2>
+                    <p class="description">Movies similar to your shared favorites that neither of you has seen</p>
+                    <div class="comparison-movies-grid">
+                        ${comparison.fresh_recommendations.map(film => `
+                            <div class="comparison-movie-card fresh-rec-card">
+                                ${film.poster_path ? `
+                                    <div class="comparison-poster">
+                                        <img src="https://image.tmdb.org/t/p/w200${film.poster_path}" alt="${film.title}" loading="lazy">
+                                        ${film.similarity_score > 1 ? `<div class="similarity-badge">${film.similarity_score} matches</div>` : ''}
+                                    </div>
+                                ` : `
+                                    <div class="comparison-poster comparison-no-poster">
+                                        <span>${film.title[0]}</span>
+                                        ${film.similarity_score > 1 ? `<div class="similarity-badge">${film.similarity_score} matches</div>` : ''}
+                                    </div>
+                                `}
+                                <div class="comparison-movie-info">
+                                    <div class="comparison-movie-title">${film.title}</div>
+                                    <div class="comparison-movie-year">${film.year}</div>
+                                    ${film.genres && film.genres.length > 0 ? `
+                                        <div class="movie-genres">${film.genres.slice(0, 2).join(', ')}</div>
+                                    ` : ''}
+                                    ${film.vote_average > 0 ? `
+                                        <div class="tmdb-rating">TMDB: ${film.vote_average.toFixed(1)}/10</div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- Shared Preferences -->
+                <div class="card">
+                    <h2>Shared Preferences</h2>
+                    <div class="preferences-grid">
+                        <div class="preference-item">
+                            <h3>Common Genres</h3>
+                            <p>${comparison.genre_similarity.shared_genres.join(', ') || 'None'}</p>
+                        </div>
+                        <div class="preference-item">
+                            <h3>Common Directors</h3>
+                            <p>${comparison.director_similarity.shared_directors.join(', ') || 'None'}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <a href="/compare" class="action-btn">Compare More Profiles</a>
+                    <a href="/" class="action-btn secondary">Back to Home</a>
+                </div>
+            `;
+        } else if (resultType === 'group') {
+            // Group consensus display
+            container.innerHTML = `
+                <header>
+                    <h1>Group Consensus</h1>
+                    <p class="subtitle">${results.usernames.join(', ')}</p>
+                </header>
+
+                <!-- Group Stats -->
+                <div class="card">
+                    <h2>Group Statistics</h2>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-value">${comparison.user_count}</div>
+                            <div class="stat-label">Users</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">${comparison.average_compatibility}%</div>
+                            <div class="stat-label">Avg Compatibility</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">${comparison.watched_by_all_count}</div>
+                            <div class="stat-label">Watched by All</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">${comparison.majority_watched_count}</div>
+                            <div class="stat-label">Majority Watched</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Safe Bets -->
+                ${comparison.safe_bets.length > 0 ? `
+                <div class="card">
+                    <h2>Safe Bets for Movie Night</h2>
+                    <p class="description">Films everyone loved (or haven't seen)</p>
+                    <div class="comparison-movies-grid">
+                        ${comparison.safe_bets.map(film => `
+                            <div class="comparison-movie-card">
+                                ${film.poster_path ? `
+                                    <div class="comparison-poster">
+                                        <img src="https://image.tmdb.org/t/p/w200${film.poster_path}" alt="${film.title}" loading="lazy">
+                                        <div class="group-badge">Safe Bet</div>
+                                    </div>
+                                ` : `
+                                    <div class="comparison-poster comparison-no-poster">
+                                        <span>${film.title[0]}</span>
+                                        <div class="group-badge">Safe Bet</div>
+                                    </div>
+                                `}
+                                <div class="comparison-movie-info">
+                                    <div class="comparison-movie-title">${film.title}</div>
+                                    <div class="comparison-movie-year">${film.year}</div>
+                                    <div class="group-stats">
+                                        <span>${film.watched_by}/${comparison.user_count} watched</span>
+                                        <span>Avg: ${film.average_rating}★</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- Unwatched Recommendations -->
+                ${comparison.unwatched_recommendations.length > 0 ? `
+                <div class="card">
+                    <h2>Group Recommendations</h2>
+                    <p class="description">Highly rated by some, not yet seen by all</p>
+                    <div class="comparison-movies-grid">
+                        ${comparison.unwatched_recommendations.map(film => `
+                            <div class="comparison-movie-card">
+                                ${film.poster_path ? `
+                                    <div class="comparison-poster">
+                                        <img src="https://image.tmdb.org/t/p/w200${film.poster_path}" alt="${film.title}" loading="lazy">
+                                    </div>
+                                ` : `
+                                    <div class="comparison-poster comparison-no-poster">
+                                        <span>${film.title[0]}</span>
+                                    </div>
+                                `}
+                                <div class="comparison-movie-info">
+                                    <div class="comparison-movie-title">${film.title}</div>
+                                    <div class="comparison-movie-year">${film.year}</div>
+                                    <div class="group-stats">
+                                        <span>Loved by: ${film.watched_by_names.join(', ')}</span>
+                                        <span>Rating: ${film.average_rating}★</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- Pairwise Compatibility Matrix -->
+                ${comparison.pairwise_compatibility ? `
+                <div class="card matrix-card">
+                    <h2>Group Compatibility Matrix</h2>
+                    <p class="description">How well does each person's taste align with others?</p>
+                    <div class="compatibility-matrix">
+                        <table class="matrix-table">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    ${comparison.pairwise_compatibility[0].map(cell => `
+                                        <th>${cell.username}</th>
+                                    `).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${comparison.pairwise_compatibility.map((row, i) => `
+                                    <tr>
+                                        <th>${results.usernames[i]}</th>
+                                        ${row.map(cell => `
+                                            <td class="${cell.is_self ? 'matrix-self' : 'matrix-score ' + getCompatibilityClass(cell.score)}">
+                                                ${cell.is_self ? '—' : cell.score + '%'}
+                                            </td>
+                                        `).join('')}
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        <div class="matrix-legend">
+                            <span class="legend-item"><span class="legend-color high-compat"></span> High (80%+)</span>
+                            <span class="legend-item"><span class="legend-color medium-compat"></span> Medium (60-79%)</span>
+                            <span class="legend-item"><span class="legend-color low-compat"></span> Low (&lt;60%)</span>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- Individual Taste Profiles -->
+                ${comparison.individual_profiles ? `
+                <div class="card profiles-card">
+                    <h2>Individual Taste Profiles</h2>
+                    <p class="description">What makes each person unique?</p>
+                    <div class="profiles-grid">
+                        ${comparison.individual_profiles.map(profile => `
+                            <div class="profile-box">
+                                <div class="profile-header">
+                                    <h3>${profile.username}</h3>
+                                    <div class="profile-badge ${profile.critic_type}">${profile.critic_type}</div>
+                                </div>
+
+                                <div class="profile-stats">
+                                    <div class="profile-stat">
+                                        <span class="stat-label">Movies Watched:</span>
+                                        <span class="stat-value">${profile.total_movies}</span>
+                                    </div>
+                                    <div class="profile-stat">
+                                        <span class="stat-label">Avg Rating:</span>
+                                        <span class="stat-value">${profile.average_rating}★</span>
+                                    </div>
+                                </div>
+
+                                <div class="profile-description">
+                                    <p>${profile.critic_description}</p>
+                                </div>
+
+                                ${profile.distinctive_genres.length > 0 ? `
+                                    <div class="profile-section">
+                                        <h4>Distinctive Genres</h4>
+                                        <div class="genre-tags">
+                                            ${profile.distinctive_genres.map(g => `
+                                                <span class="genre-tag">${g.name}</span>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+
+                                ${profile.most_compatible ? `
+                                    <div class="profile-section">
+                                        <h4>Compatibility</h4>
+                                        <p class="compat-text">
+                                            <span class="high-compat">↑ ${profile.most_compatible.username} (${profile.most_compatible.score}%)</span>
+                                            ${profile.least_compatible ? `
+                                                <span class="low-compat">↓ ${profile.least_compatible.username} (${profile.least_compatible.score}%)</span>
+                                            ` : ''}
+                                        </p>
+                                    </div>
+                                ` : ''}
+
+                                ${profile.unique_favorites.length > 0 ? `
+                                    <div class="profile-section">
+                                        <h4>Unique Favorites</h4>
+                                        <p class="unique-description">Movies only ${profile.username} has seen and loved</p>
+                                        <div class="unique-movies">
+                                            ${profile.unique_favorites.map(film => `
+                                                <div class="unique-movie">
+                                                    ${film.poster_path ? `
+                                                        <img src="https://image.tmdb.org/t/p/w92${film.poster_path}" alt="${film.title}">
+                                                    ` : `
+                                                        <div class="unique-no-poster">${film.title[0]}</div>
+                                                    `}
+                                                    <div class="unique-info">
+                                                        <div class="unique-title">${film.title}</div>
+                                                        <div class="unique-rating">${film.rating}★</div>
+                                                    </div>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                <div class="actions">
+                    <a href="/compare" class="action-btn">Compare More Profiles</a>
+                    <a href="/" class="action-btn secondary">Back to Home</a>
+                </div>
+            `;
+        }
+
+        function getCompatibilityClass(score) {
+            if (score >= 80) return 'high-compat';
+            if (score >= 60) return 'medium-compat';
+            return 'low-compat';
+        }
+
+        function getCompatibilityLabel(score) {
+            if (score >= 90) return 'Taste Twins!';
+            if (score >= 80) return 'Highly Compatible';
+            if (score >= 70) return 'Very Compatible';
+            if (score >= 60) return 'Moderately Compatible';
+            if (score >= 40) return 'Some Common Ground';
+            return 'Different Tastes';
+        }
+    </script>
+</body>
+</html>

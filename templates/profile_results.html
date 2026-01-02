@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ username }}'s Taste Profile - Letterboxd Movie Recommender</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode">
+        <span class="toggle-icon"></span>
+    </button>
+
+    <div class="container">
+        <header>
+            <h1>{{ username }}'s Taste Profile</h1>
+            <p class="subtitle">Based on Letterboxd viewing history</p>
+            <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
+                <a href="/profile-analysis" class="btn-secondary" style="font-size: 0.9rem; padding: 8px 16px;">Analyze Another Profile</a>
+                <a href="/" class="btn-secondary" style="font-size: 0.9rem; padding: 8px 16px;">← Back to List Recommendations</a>
+            </div>
+        </header>
+
+        <main>
+            <!-- Overview Statistics -->
+            <div class="card">
+                <h2>Viewing Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value">{{ analysis.stats.total_films }}</div>
+                        <div class="stat-label">Films Watched</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">{{ analysis.stats.rated_films }}</div>
+                        <div class="stat-label">Films Rated</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">{{ analysis.stats.average_rating_stars }}★</div>
+                        <div class="stat-label">Average Rating</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">{{ analysis.stats.median_rating }}★</div>
+                        <div class="stat-label">Median Rating</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI-Generated Cinematic Profile -->
+            {% if analysis.ai_profile %}
+            <div class="card cinematic-profile">
+                <div class="profile-header">
+                    <div class="profile-badge">CINEMATIC PROFILE</div>
+                    <h2 class="profile-title">{{ analysis.ai_profile.title }}</h2>
+                </div>
+                <div class="profile-description">
+                    {{ analysis.ai_profile.description }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Watch Time Statistics -->
+            {% if analysis.watch_time and analysis.watch_time.total_hours > 0 %}
+            <div class="card watch-time-card">
+                <h2>Total Watch Time</h2>
+                <div class="watch-time-hero">
+                    <div class="watch-time-main">
+                        <span class="watch-time-value">{{ analysis.watch_time.total_hours }}</span>
+                        <span class="watch-time-unit">hours</span>
+                    </div>
+                    <div class="watch-time-alt">
+                        <span>{{ analysis.watch_time.total_days }} days</span>
+                        <span>•</span>
+                        <span>{{ analysis.watch_time.total_minutes|int }} minutes</span>
+                    </div>
+                </div>
+                <div class="watch-time-stats">
+                    <div class="watch-stat">
+                        <div class="watch-stat-value">{{ analysis.watch_time.films_counted }}</div>
+                        <div class="watch-stat-label">Films Counted</div>
+                    </div>
+                    <div class="watch-stat">
+                        <div class="watch-stat-value">{{ analysis.watch_time.average_runtime|int }} min</div>
+                        <div class="watch-stat-label">Average Runtime</div>
+                    </div>
+                </div>
+                {% if analysis.watch_time.comparisons %}
+                <div class="watch-time-comparisons">
+                    <h3>Fun Comparisons</h3>
+                    <ul>
+                        {% for comp in analysis.watch_time.comparisons %}
+                        <li>{{ comp.description }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Certification Breakdown -->
+            {% if analysis.certifications and analysis.certifications.distribution %}
+            <div class="card">
+                <h2>Content Rating Breakdown</h2>
+                <p class="description">Distribution of MPAA ratings across your watched films</p>
+                <div class="certification-grid">
+                    {% for cert in analysis.certifications.distribution %}
+                    <div class="cert-item">
+                        <div class="cert-badge">{{ cert.certification if cert.certification else 'Not Rated' }}</div>
+                        <div class="cert-stats">
+                            <div class="cert-count">{{ cert.count }} films</div>
+                            <div class="cert-percentage">{{ cert.percentage }}%</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="cert-summary">
+                    {{ analysis.certifications.total_certified }} of {{ analysis.certifications.total_films }} films have rating information
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- AI-Generated Taste Summary -->
+            <div class="card">
+                <h2>Taste Profile</h2>
+                <div class="taste-analysis-content">
+                    <p style="font-size: 1.1rem; line-height: 1.8;">{{ analysis.taste_summary }}</p>
+                </div>
+            </div>
+
+            <!-- Rating Distribution -->
+            {% if analysis.rating_patterns.distribution %}
+            <div class="card">
+                <h2>Rating Distribution</h2>
+                <div class="rating-chart">
+                    {% for item in analysis.rating_patterns.distribution %}
+                    <div class="rating-bar-container">
+                        <div class="rating-label">{{ item.stars }}★</div>
+                        <div class="rating-bar-wrapper">
+                            <div class="rating-bar" style="width: {{ (item.count / analysis.stats.rated_films * 100) }}%">
+                                <span class="rating-count">{{ item.count }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Genre Preferences -->
+            {% if analysis.genres %}
+            <div class="card">
+                <h2>Favorite Genres</h2>
+                <div class="genre-tags">
+                    {% for genre in analysis.genres[:10] %}
+                    <div class="genre-tag">
+                        <span class="genre-name">{{ genre.name }}</span>
+                        <span class="genre-count">{{ genre.count }} films</span>
+                        {% if genre.average_rating_stars > 0 %}
+                        <span class="genre-rating">{{ genre.average_rating_stars }}★ avg</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Favorite Directors -->
+            {% if analysis.directors %}
+            <div class="card">
+                <h2>Favorite Directors</h2>
+                <div class="creators-list">
+                    {% for director in analysis.directors[:8] %}
+                    <div class="creator-item">
+                        <div class="creator-name">{{ director.name }}</div>
+                        <div class="creator-stats">
+                            {{ director.count }} films
+                            {% if director.average_rating_stars > 0 %}
+                            • {{ director.average_rating_stars }}★ avg
+                            {% endif %}
+                        </div>
+                        {% if director.sample_titles %}
+                        <div class="creator-examples">
+                            {{ director.sample_titles|join(', ') }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Favorite Actors -->
+            {% if analysis.actors %}
+            <div class="card">
+                <h2>Favorite Actors</h2>
+                <div class="actors-grid">
+                    {% for actor in analysis.actors[:15] %}
+                    <div class="actor-card">
+                        {% if actor.profile_url %}
+                        <div class="actor-image">
+                            <img src="{{ actor.profile_url }}" alt="{{ actor.name }}" loading="lazy">
+                        </div>
+                        {% else %}
+                        <div class="actor-image actor-no-image">
+                            <span>{{ actor.name[0] }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="actor-info">
+                            <div class="actor-name">{{ actor.name }}</div>
+                            <div class="actor-stats">
+                                {{ actor.count }} films
+                                {% if actor.average_rating_stars > 0 %}
+                                • {{ actor.average_rating_stars }}★
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Decade Preferences -->
+            {% if analysis.decades %}
+            <div class="card">
+                <h2>Era Preferences</h2>
+                <div class="decade-chart">
+                    {% for decade in analysis.decades %}
+                    <div class="decade-item">
+                        <div class="decade-label">{{ decade.decade }}</div>
+                        <div class="decade-bar-wrapper">
+                            <div class="decade-bar" style="width: {{ (decade.count / analysis.stats.total_films * 100) }}%">
+                                <span class="decade-count">{{ decade.count }}</span>
+                            </div>
+                        </div>
+                        {% if decade.average_rating_stars > 0 %}
+                        <div class="decade-rating">{{ decade.average_rating_stars }}★</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Top Keywords/Themes -->
+            {% if analysis.keywords %}
+            <div class="card">
+                <h2>Common Themes</h2>
+                <div class="keyword-cloud">
+                    {% for keyword in analysis.keywords[:15] %}
+                    <span class="keyword-tag">{{ keyword.name }} ({{ keyword.count }})</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Highest Rated Films -->
+            {% if analysis.rating_patterns.highest_rated %}
+            <div class="card">
+                <h2>Highest Rated Films</h2>
+                <div class="top-films-list">
+                    {% for film in analysis.rating_patterns.highest_rated[:5] %}
+                    <div class="top-film-item">
+                        <span class="film-rank">{{ loop.index }}</span>
+                        <span class="film-title">{{ film.title }} ({{ film.year }})</span>
+                        <span class="film-rating">{{ film.rating_stars }}★</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Public Disagreement -->
+            {% if analysis.public_disagreement %}
+            <div class="card">
+                <h2>Public Disagreement</h2>
+                <p class="description">Movies where your rating differs most from the public consensus</p>
+
+                {% if analysis.public_disagreement.overrated %}
+                <h3 class="disagreement-subtitle">You Rated Higher</h3>
+                <div class="disagreement-grid">
+                    {% for film in analysis.public_disagreement.overrated %}
+                    <div class="disagreement-card">
+                        {% if film.poster_path %}
+                        <div class="disagreement-poster">
+                            <img src="https://image.tmdb.org/t/p/w200{{ film.poster_path }}" alt="{{ film.title }}" loading="lazy">
+                        </div>
+                        {% else %}
+                        <div class="disagreement-poster disagreement-no-poster">
+                            <span>{{ film.title[0] }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="disagreement-content">
+                            <div class="disagreement-title">{{ film.title }}</div>
+                            <div class="disagreement-year">{{ film.year }}</div>
+                            <div class="disagreement-ratings">
+                                <div class="rating-row">
+                                    <span class="rating-label">You:</span>
+                                    <span class="rating-value user">{{ film.user_rating_stars }}★</span>
+                                </div>
+                                <div class="rating-row">
+                                    <span class="rating-label">Public:</span>
+                                    <span class="rating-value tmdb">{{ film.tmdb_rating }}/10</span>
+                                </div>
+                                <div class="difference-badge positive">+{{ film.difference }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if analysis.public_disagreement.underrated %}
+                <h3 class="disagreement-subtitle">You Rated Lower</h3>
+                <div class="disagreement-grid">
+                    {% for film in analysis.public_disagreement.underrated %}
+                    <div class="disagreement-card">
+                        {% if film.poster_path %}
+                        <div class="disagreement-poster">
+                            <img src="https://image.tmdb.org/t/p/w200{{ film.poster_path }}" alt="{{ film.title }}" loading="lazy">
+                        </div>
+                        {% else %}
+                        <div class="disagreement-poster disagreement-no-poster">
+                            <span>{{ film.title[0] }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="disagreement-content">
+                            <div class="disagreement-title">{{ film.title }}</div>
+                            <div class="disagreement-year">{{ film.year }}</div>
+                            <div class="disagreement-ratings">
+                                <div class="rating-row">
+                                    <span class="rating-label">You:</span>
+                                    <span class="rating-value user">{{ film.user_rating_stars }}★</span>
+                                </div>
+                                <div class="rating-row">
+                                    <span class="rating-label">Public:</span>
+                                    <span class="rating-value tmdb">{{ film.tmdb_rating }}/10</span>
+                                </div>
+                                <div class="difference-badge negative">{{ film.difference }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Hidden Gems -->
+            {% if analysis.hidden_gems %}
+            <div class="card">
+                <h2>Hidden Gems</h2>
+                <p class="description">Obscure films you loved that deserve more attention</p>
+                <div class="hidden-gems-grid">
+                    {% for gem in analysis.hidden_gems %}
+                    <div class="gem-card">
+                        {% if gem.poster_path %}
+                        <div class="gem-poster">
+                            <img src="https://image.tmdb.org/t/p/w200{{ gem.poster_path }}" alt="{{ gem.title }}" loading="lazy">
+                            <div class="gem-badge">Hidden Gem</div>
+                        </div>
+                        {% else %}
+                        <div class="gem-poster gem-no-poster">
+                            <span>{{ gem.title[0] }}</span>
+                            <div class="gem-badge">Hidden Gem</div>
+                        </div>
+                        {% endif %}
+                        <div class="gem-content">
+                            <div class="gem-title">{{ gem.title }}</div>
+                            <div class="gem-year">{{ gem.year }}</div>
+                            <div class="gem-stats">
+                                <div class="gem-rating">
+                                    <span class="gem-stars">{{ gem.user_rating_stars }}★</span>
+                                    <span class="gem-label">Your Rating</span>
+                                </div>
+                                <div class="gem-popularity">
+                                    <span class="gem-pop-value">{{ gem.popularity }}</span>
+                                    <span class="gem-label">Popularity</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- AI Recommendations -->
+            <div class="card">
+                <h2>Personalized Recommendations</h2>
+                <p class="description">
+                    Based on your complete viewing history, here are 10 films tailored to your taste:
+                </p>
+                <div class="recommendations">
+                    {% for rec in recommendations %}
+                    <div class="movie-card">
+                        {% if rec.poster_path %}
+                        <div class="poster-container">
+                            <img 
+                                src="https://image.tmdb.org/t/p/w500{{ rec.poster_path }}" 
+                                alt="{{ rec.title }}"
+                                class="movie-poster"
+                                loading="lazy"
+                            >
+                        </div>
+                        {% endif %}
+                        <div class="movie-details">
+                            <h3 class="movie-title">{{ rec.title }}</h3>
+                            <div class="movie-meta">
+                                <span class="movie-year">{{ rec.year }}</span>
+                                {% if rec.runtime %}
+                                <span class="movie-runtime">{{ rec.runtime }} min</span>
+                                {% endif %}
+                                {% if rec.vote_average %}
+                                <span class="movie-rating">⭐ {{ rec.vote_average|round(1) }}/10</span>
+                                {% endif %}
+                            </div>
+                            {% if rec.genres %}
+                            <div class="movie-genres">
+                                {% for genre in rec.genres[:3] %}
+                                <span class="genre-badge">{{ genre }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <p class="movie-overview">{{ rec.overview }}</p>
+                            {% if rec.director %}
+                            <p class="movie-director"><strong>Director:</strong> {{ rec.director }}</p>
+                            {% endif %}
+                            {% if rec.reasoning %}
+                            <div class="recommendation-reasoning">
+                                <strong>Why this fits:</strong> {{ rec.reasoning }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by <a href="https://www.themoviedb.org" target="_blank">TMDB</a> and <a href="https://anthropic.com" target="_blank">Claude AI</a></p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
