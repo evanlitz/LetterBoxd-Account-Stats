@@ -4,7 +4,7 @@ uvicorn[standard]>=0.24.0
 python-multipart>=0.0.6  # Required for form data handling
 
 # LLM Integration
-anthropic>=0.7.0
+anthropic>=0.40.0
 
 # HTTP & Web Scraping
 requests>=2.31.0

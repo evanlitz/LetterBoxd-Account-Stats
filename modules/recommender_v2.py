@@ -43,7 +43,12 @@ class MovieRecommender:
                 "Anthropic API key not found. Please set ANTHROPIC_API_KEY in .env file."
             )
 
-        self.client = Anthropic(api_key=self.api_key)
+        # Initialize client with timeout settings
+        self.client = Anthropic(
+            api_key=self.api_key,
+            timeout=60.0,  # 60 second timeout for API calls
+            max_retries=2
+        )
         self.model = Config.CLAUDE_MODEL
         self.max_tokens = Config.CLAUDE_MAX_TOKENS * 2  # More tokens for analysis
         self.temperature = Config.CLAUDE_TEMPERATURE

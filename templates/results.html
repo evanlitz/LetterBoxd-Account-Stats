@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Recommendations - Letterboxd Movie Recommender</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v=5">
 </head>
 <body>
     <!-- Dark Mode Toggle -->
@@ -45,61 +45,88 @@
                 </div>
             </div>
 
-            <div class="recommendations-grid">
+            <div class="movie-grid">
                 {% for movie in recommendations %}
-                <div class="movie-card">
-                    <div class="movie-poster">
-                        {% if movie.poster_url %}
-                            <img src="{{ movie.poster_url }}" alt="{{ movie.title }} poster">
-                        {% else %}
-                            <div class="no-poster">
-                                <span>No Poster Available</span>
-                            </div>
-                        {% endif %}
+                <article class="movie-card-modern">
+                    <div class="poster-wrapper">
+                        <a href="https://letterboxd.com/tmdb/{{ movie.tmdb_id }}" target="_blank" class="poster-link">
+                            {% if movie.poster_url %}
+                                <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="poster-img">
+                            {% else %}
+                                <div class="poster-placeholder">🎬</div>
+                            {% endif %}
+                        </a>
+                        <div class="rating-badge">
+                            <span>⭐ {{ "%.1f"|format(movie.rating) }}</span>
+                        </div>
                     </div>
-                    <div class="movie-info">
-                        <h3 class="movie-title">{{ movie.title }}</h3>
-                        <p class="movie-year">{{ movie.year }}</p>
 
-                        <div class="movie-meta">
-                            <span class="rating">⭐ {{ "%.1f"|format(movie.rating) }}/10</span>
-                            <span class="runtime">
-                                {% if movie.runtime %}
-                                    {{ movie.runtime }} min
-                                {% endif %}
-                            </span>
+                    <div class="card-content">
+                        <h3 class="card-title">
+                            <a href="https://letterboxd.com/tmdb/{{ movie.tmdb_id }}" target="_blank">{{ movie.title }}</a>
+                        </h3>
+
+                        <div class="card-meta">
+                            <span class="meta-year">{{ movie.year }}</span>
+                            {% if movie.runtime %}
+                            <span class="meta-dot">•</span>
+                            <span class="meta-runtime">{{ movie.runtime }}m</span>
+                            {% endif %}
                         </div>
 
-                        <div class="movie-genres">
+                        <div class="card-genres">
                             {% for genre in movie.genres[:3] %}
-                                <span class="genre-tag">{{ genre }}</span>
+                            <span class="genre-badge">
+                                {% if genre is mapping %}{{ genre.name }}{% else %}{{ genre }}{% endif %}
+                            </span>
                             {% endfor %}
                         </div>
 
-                        <div class="movie-crew">
-                            <p><strong>Director:</strong> {{ movie.directors|join(', ') if movie.directors else 'N/A' }}</p>
-                            <p><strong>Cast:</strong> {{ movie.cast[:3]|join(', ') if movie.cast else 'N/A' }}</p>
+                        <div class="card-credits">
+                            <div class="credit-block">
+                                <div class="credit-label">Directed by</div>
+                                <div class="credit-names">
+                                    {% if movie.directors %}
+                                        {% if movie.directors is string %}
+                                            {{ movie.directors }}
+                                        {% elif movie.directors[0] is mapping %}
+                                            {{ movie.directors[:2]|map(attribute='name')|join(', ') }}
+                                        {% else %}
+                                            {{ movie.directors[:2]|join(', ') }}
+                                        {% endif %}
+                                    {% else %}N/A{% endif %}
+                                </div>
+                            </div>
+                            <div class="credit-block">
+                                <div class="credit-label">Starring</div>
+                                <div class="credit-names">
+                                    {% if movie.cast %}
+                                        {% if movie.cast[0] is mapping %}
+                                            {{ movie.cast[:4]|map(attribute='name')|join(', ') }}
+                                        {% else %}
+                                            {{ movie.cast[:4]|join(', ') }}
+                                        {% endif %}
+                                    {% else %}N/A{% endif %}
+                                </div>
+                            </div>
                         </div>
 
-                        <p class="movie-overview">{{ movie.overview[:150] }}{% if movie.overview|length > 150 %}...{% endif %}</p>
+                        {% if movie.overview %}
+                        <p class="card-overview">{{ movie.overview }}</p>
+                        {% endif %}
 
                         {% if movie.recommendation_reason %}
-                        <div class="recommendation-reason">
-                            <p class="reason-label">💡 Why this recommendation?</p>
-                            <p class="reason-text">{{ movie.recommendation_reason }}</p>
+                        <div class="why-recommended">
+                            <strong>Why:</strong> {{ movie.recommendation_reason }}
                         </div>
                         {% endif %}
 
-                        <div class="movie-links">
-                            <a href="https://www.themoviedb.org/movie/{{ movie.tmdb_id }}" target="_blank" class="btn-link">
-                                View on TMDB
-                            </a>
-                            <a href="https://letterboxd.com/tmdb/{{ movie.tmdb_id }}" target="_blank" class="btn-link">
-                                View on Letterboxd
-                            </a>
+                        <div class="card-actions">
+                            <a href="https://letterboxd.com/tmdb/{{ movie.tmdb_id }}" target="_blank" class="btn-view">Letterboxd</a>
+                            <a href="https://www.themoviedb.org/movie/{{ movie.tmdb_id }}" target="_blank" class="btn-info">TMDB</a>
                         </div>
                     </div>
-                </div>
+                </article>
                 {% endfor %}
             </div>
 
